@@ -1752,7 +1752,7 @@ class YTShortClipperApp(ctk.CTk):
                 "min_shot_duration": 90,
                 "center_weight": 0.3
             })
-            
+
             output_dir = self.config.get("output_dir", str(OUTPUT_DIR))
             model = self.config.get("model", "gpt-4.1")
             

@@ -3335,21 +3335,24 @@ Transcript:
             
             frame_count = 0
             prev_lip_distances = {}  # Track previous lip distances per face
-            
+            last_known_face_x = orig_w / 2  # Fallback only until first face is ever found
+
             while True:
                 if self.is_cancelled():
                     cap.release()
                     raise Exception("Cancelled by user")
-                
+
                 ret, frame = cap.read()
                 if not ret:
                     break
-                
+
                 # Convert to RGB for MediaPipe
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = face_mesh.process(rgb_frame)
-                
-                best_face_x = orig_w / 2  # Default to center
+
+                # Default to last known good position (not raw frame center) so a
+                # single missed detection doesn't yank the crop back to the middle
+                best_face_x = last_known_face_x
                 max_activity = 0
                 
                 if results.multi_face_landmarks:
@@ -3388,7 +3391,9 @@ Transcript:
                         best_face = max(faces_data, key=lambda f: f['combined_score'])
                         best_face_x = best_face['x']
                         max_activity = best_face['activity']
-                
+
+                last_known_face_x = best_face_x
+
                 # Calculate crop position
                 crop_x = int(best_face_x - crop_w / 2)
                 crop_x = max(0, min(crop_x, orig_w - crop_w))
@@ -4337,21 +4342,24 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         ) as face_mesh:
             
             prev_lip_distances = {}
-            
+            last_known_face_x = orig_w / 2  # Fallback only until first face is ever found
+
             while True:
                 if self.is_cancelled():
                     cap.release()
                     raise Exception("Cancelled by user")
-                
+
                 ret, frame = cap.read()
                 if not ret:
                     break
-                
+
                 # Convert to RGB for MediaPipe
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = face_mesh.process(rgb_frame)
-                
-                best_face_x = orig_w / 2
+
+                # Default to last known good position (not raw frame center) so a
+                # single missed detection doesn't yank the crop back to the middle
+                best_face_x = last_known_face_x
                 max_activity = 0
                 
                 if results.multi_face_landmarks:
@@ -4389,7 +4397,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         best_face = max(faces_data, key=lambda f: f['combined_score'])
                         best_face_x = best_face['x']
                         max_activity = best_face['activity']
-                
+
+                last_known_face_x = best_face_x
+
                 crop_x = int(best_face_x - crop_w / 2)
                 crop_x = max(0, min(crop_x, orig_w - crop_w))
                 crop_positions.append(crop_x)

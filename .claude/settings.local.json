@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(PATH='/d/Project AI/AI-Short-Clipper/ffmpeg:__TRACKED_VAR__' python -c ' *)",
+      "Bash(\"./ffmpeg/ffmpeg.exe\" -y -i \"_temp/test_center/source.mp4\" -vf \"select=eq\\(n\\\\,150\\)\" -vframes 1 \"_temp/test_center/preview.png\")",
+      "Bash(\"./ffmpeg/ffmpeg.exe\" -y -i \"_temp/test_center/source.mp4\" -vf \"select=eq\\(n\\\\,150\\)\" -vframes 1 -update 1 \"_temp/test_center/preview.png\")",
+      "Bash(ls \"C:\\\\Users\\\\asus\\\\AppData\\\\Local\\\\Packages\\\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\\\LocalCache\\\\local-packages\\\\Python312\\\\site-packages\\\\mediapipe\\\\\" 2>&1 *)",
+      "Bash(pip index *)",
+      "Bash(mkdir -p \"/d/Project AI/AI-Short-Clipper/_temp/mp_test\")",
+      "Bash(pip install *)",
+      "Bash(\"/c/Users/asus/AppData/Local/Microsoft/WindowsApps/python3.12.exe\" --version)",
+      "Bash(where python3.12)",
+      "Bash(/c/Users/asus/.local/bin/python3.12.exe -c ' *)"
+    ]
+  }
+}

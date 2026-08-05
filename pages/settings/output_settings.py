@@ -57,37 +57,37 @@ class OutputSettingsSubPage(BaseSettingsSubPage):
             font=ctk.CTkFont(size=11), text_color="gray").pack(anchor="w", pady=(0, 10))
         
         self.face_tracking_var = ctk.StringVar(value="opencv")
-        
+
         # OpenCV option
         opencv_frame = ctk.CTkFrame(tracking_frame, fg_color=("gray85", "gray20"), corner_radius=8)
         opencv_frame.pack(fill="x", pady=(0, 10))
-        
-        opencv_radio = ctk.CTkRadioButton(opencv_frame, text="OpenCV (Fast)", 
-            variable=self.face_tracking_var, value="opencv", 
+
+        opencv_radio = ctk.CTkRadioButton(opencv_frame, text="OpenCV (Fast)",
+            variable=self.face_tracking_var, value="opencv",
             font=ctk.CTkFont(size=13, weight="bold"))
         opencv_radio.pack(anchor="w", padx=15, pady=(10, 5))
-        
-        ctk.CTkLabel(opencv_frame, text="• Crop to largest face", 
+
+        ctk.CTkLabel(opencv_frame, text="• Crop to largest face",
             font=ctk.CTkFont(size=11), text_color="gray").pack(anchor="w", padx=35)
-        ctk.CTkLabel(opencv_frame, text="• Faster processing", 
+        ctk.CTkLabel(opencv_frame, text="• Faster processing",
             font=ctk.CTkFont(size=11), text_color="gray").pack(anchor="w", padx=35)
-        ctk.CTkLabel(opencv_frame, text="• Recommended for most users", 
+        ctk.CTkLabel(opencv_frame, text="• Recommended for most users",
             font=ctk.CTkFont(size=11), text_color="gray").pack(anchor="w", padx=35, pady=(0, 10))
-        
+
         # MediaPipe option
         mediapipe_frame = ctk.CTkFrame(tracking_frame, fg_color=("gray85", "gray20"), corner_radius=8)
         mediapipe_frame.pack(fill="x")
-        
-        mediapipe_radio = ctk.CTkRadioButton(mediapipe_frame, text="MediaPipe (Smart)", 
-            variable=self.face_tracking_var, value="mediapipe", 
+
+        mediapipe_radio = ctk.CTkRadioButton(mediapipe_frame, text="MediaPipe (Smart)",
+            variable=self.face_tracking_var, value="mediapipe",
             font=ctk.CTkFont(size=13, weight="bold"))
         mediapipe_radio.pack(anchor="w", padx=15, pady=(10, 5))
-        
-        ctk.CTkLabel(mediapipe_frame, text="• Crop to active speaker (lip movement)", 
+
+        ctk.CTkLabel(mediapipe_frame, text="• Crop to active speaker (lip movement)",
             font=ctk.CTkFont(size=11), text_color="gray").pack(anchor="w", padx=35)
-        ctk.CTkLabel(mediapipe_frame, text="• More accurate speaker tracking", 
+        ctk.CTkLabel(mediapipe_frame, text="• More accurate speaker tracking",
             font=ctk.CTkFont(size=11), text_color="gray").pack(anchor="w", padx=35)
-        ctk.CTkLabel(mediapipe_frame, text="⚠ Slower processing (2-3x)", 
+        ctk.CTkLabel(mediapipe_frame, text="⚠ Currently broken: requires protobuf<5 (see requirements.txt)",
             font=ctk.CTkFont(size=11), text_color="orange").pack(anchor="w", padx=35, pady=(0, 10))
         
         # Save button
