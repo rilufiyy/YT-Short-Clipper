@@ -3171,24 +3171,33 @@ Transcript:
         # First pass: analyze frames
         crop_positions = []
         current_target = orig_w / 2
-        
+        first_detection_idx = None
+
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            
+
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(50, 50))
-            
+
             if len(faces) > 0:
                 # Find largest face
                 largest = max(faces, key=lambda f: f[2] * f[3])
                 current_target = largest[0] + largest[2] / 2
-            
+                if first_detection_idx is None:
+                    first_detection_idx = len(crop_positions)
+
             crop_x = int(current_target - crop_w / 2)
             crop_x = max(0, min(crop_x, orig_w - crop_w))
             crop_positions.append(crop_x)
-        
+
+        # Backfill leading frames before the first detected face: those frames
+        # were defaulted to the raw frame center, not the speaker's actual
+        # position. Replace them with the first real detection instead.
+        if first_detection_idx:
+            crop_positions[:first_detection_idx] = [crop_positions[first_detection_idx]] * first_detection_idx
+
         # Stabilize positions
         crop_positions = self.stabilize_positions(crop_positions)
         
@@ -3336,6 +3345,7 @@ Transcript:
             frame_count = 0
             prev_lip_distances = {}  # Track previous lip distances per face
             last_known_face_x = orig_w / 2  # Fallback only until first face is ever found
+            first_detection_idx = None
 
             while True:
                 if self.is_cancelled():
@@ -3391,6 +3401,8 @@ Transcript:
                         best_face = max(faces_data, key=lambda f: f['combined_score'])
                         best_face_x = best_face['x']
                         max_activity = best_face['activity']
+                        if first_detection_idx is None:
+                            first_detection_idx = len(crop_positions)
 
                 last_known_face_x = best_face_x
 
@@ -3406,10 +3418,16 @@ Transcript:
                     self.log(f"    Analyzed {frame_count}/{total_frames} frames...")
         
         self.log(f"  Analyzed {frame_count} frames with MediaPipe")
-        
+
+        # Backfill leading frames before the first detected face: those frames
+        # were defaulted to the raw frame center, not the speaker's actual
+        # position. Replace them with the first real detection instead.
+        if first_detection_idx:
+            crop_positions[:first_detection_idx] = [crop_positions[first_detection_idx]] * first_detection_idx
+
         # Stabilize positions with shot-based switching
         crop_positions = self._stabilize_positions_with_activity(
-            crop_positions, 
+            crop_positions,
             face_activities,
             min_shot_duration,
             switch_threshold
@@ -4116,34 +4134,37 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         
         crop_positions = []
         current_target = orig_w / 2
+        first_detection_idx = None
         frame_count = 0
         last_log_time = 0
         import time
-        
+
         while True:
             # Check for cancellation
             if self.is_cancelled():
                 cap.release()
                 raise Exception("Cancelled by user")
-            
+
             ret, frame = cap.read()
             if not ret:
                 break
-            
+
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(50, 50))
-            
+
             if len(faces) > 0:
                 # Find largest face
                 largest = max(faces, key=lambda f: f[2] * f[3])
                 current_target = largest[0] + largest[2] / 2
-            
+                if first_detection_idx is None:
+                    first_detection_idx = len(crop_positions)
+
             crop_x = int(current_target - crop_w / 2)
             crop_x = max(0, min(crop_x, orig_w - crop_w))
             crop_positions.append(crop_x)
-            
+
             frame_count += 1
-            
+
             # Update progress more frequently with time-based logging
             current_time = time.time()
             if frame_count % 30 == 0 or (current_time - last_log_time) > 2:  # Every 30 frames or 2 seconds
@@ -4152,9 +4173,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 sys.stdout.flush()
                 progress_callback(progress)
                 last_log_time = current_time
-        
+
         print(f"[DEBUG] Analyzed {frame_count} frames")
-        
+
+        # Backfill leading frames before the first detected face: those frames
+        # were defaulted to the raw frame center, not the speaker's actual
+        # position. Replace them with the first real detection instead.
+        if first_detection_idx:
+            crop_positions[:first_detection_idx] = [crop_positions[first_detection_idx]] * first_detection_idx
+
         # Stabilize positions
         crop_positions = self.stabilize_positions(crop_positions)
         progress_callback(0.45)
@@ -4343,6 +4370,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             
             prev_lip_distances = {}
             last_known_face_x = orig_w / 2  # Fallback only until first face is ever found
+            first_detection_idx = None
 
             while True:
                 if self.is_cancelled():
@@ -4397,6 +4425,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         best_face = max(faces_data, key=lambda f: f['combined_score'])
                         best_face_x = best_face['x']
                         max_activity = best_face['activity']
+                        if first_detection_idx is None:
+                            first_detection_idx = len(crop_positions)
 
                 last_known_face_x = best_face_x
 
@@ -4404,9 +4434,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 crop_x = max(0, min(crop_x, orig_w - crop_w))
                 crop_positions.append(crop_x)
                 face_activities.append(max_activity)
-                
+
                 frame_count += 1
-                
+
                 current_time = time.time()
                 if frame_count % 30 == 0 or (current_time - last_log_time) > 2:
                     progress = (frame_count / total_frames) * 0.4
@@ -4414,10 +4444,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     sys.stdout.flush()
                     progress_callback(progress)
                     last_log_time = current_time
-        
+
         print(f"[DEBUG] Analyzed {frame_count} frames with MediaPipe")
         sys.stdout.flush()
-        
+
+        # Backfill leading frames before the first detected face: those frames
+        # were defaulted to the raw frame center, not the speaker's actual
+        # position. Replace them with the first real detection instead.
+        if first_detection_idx:
+            crop_positions[:first_detection_idx] = [crop_positions[first_detection_idx]] * first_detection_idx
+
         # Stabilize positions (40-45%)
         progress_callback(0.4)
         crop_positions = self._stabilize_positions_with_activity(
